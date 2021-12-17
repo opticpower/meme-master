@@ -1,38 +1,61 @@
 import styled from 'styled-components'
-import { useDropzone } from 'react-dropzone';
-import axios from 'axios';
+import { useDropzone } from 'react-dropzone'
+import axios from 'axios'
+import { useState } from 'react'
 
 const StyledDiv = styled.div`
   padding: 10px;
   margin: 20px;
   border: 2px dashed #ccc;
 `
-const uploadToApi = async (files) => {
-  const formData = new FormData();
-
-  Array.from(files).forEach(file => {
-    const name = file.name
-    formData.append(name, file);
-  });
-
-  const config = {
-    headers: { 'content-type': 'multipart/form-data' },
-  };
-
-  await axios.post('/api/slack', formData, config);
-}
 
 export default function Home() {
+  const [background, setBackground] = useState('#D391FA');
   const { getRootProps, getInputProps } = useDropzone({
     accept: 'image/*',
     onDrop: files => uploadToApi(files)
   })
 
+  const uploadToApi = async (files) => {
+    const formData = new FormData();
+  
+    Array.from(files).forEach(file => {
+      const name = file.name
+      formData.append(name, file);
+    });
+  
+    const config = {
+      headers: { 'content-type': 'multipart/form-data' },
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.lengthComputable) {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          if (percentCompleted > 16 && percentCompleted < 32) {
+            setBackground('#C364FA');
+          } else if (percentCompleted > 32 && percentCompleted < 48) {
+            setBackground('#A230ED');
+          } else if (percentCompleted > 48 && percentCompleted < 64) {
+            setBackground('#6B00D7');
+          } else if (percentCompleted > 64 && percentCompleted < 80) {
+            setBackground('#3B00B3');
+          } else if (percentCompleted > 80 && percentCompleted < 99) {
+            setBackground('#I90087');
+          } else {
+            setBackground('#D391FA');
+          }
+          console.log('Percent is ', percentCompleted);
+        }
+      }
+    };
+  
+    await axios.post('/api/slack', formData, config)
+  }
+
   return (
     <>
+      <style jsx global>{`body {background: ${background}}`}</style>
       <StyledDiv {...getRootProps({ refKey: 'innerRef' })}>
         <input {...getInputProps()} />
-        <p>Drag and drop a meme to get it to slack voting</p>
+        <p>{background === '#D391FA' ? 'Drag a meme to start voting' : 'Uploading...'}</p>
       </StyledDiv>
     </>
   )
