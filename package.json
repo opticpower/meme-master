@@ -8,9 +8,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@slack/web-api": "^6.5.1",
+    "axios": "^0.24.0",
+    "multiparty": "^4.2.2",
     "next": "12.0.7",
+    "next-connect": "^0.11.0",
     "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "react-dom": "17.0.2",
+    "react-dropzone": "^11.4.2",
+    "styled-components": "^5.3.3"
   },
   "devDependencies": {
     "eslint": "8.4.1",
