@@ -10,9 +10,10 @@ export default async function memeScore(_, res) {
     console.log('response', response);
   } catch (e) {
     console.log('e', e);
+    res.status(500).json(e);
   }
 
   //['keycap_ten', 'nine', 'eight', 'seven', 'six', 'five', 'four', 'three', 'two', 'one'])
 
-  res.status(200).json({ data: 'success' });
+  res.status(200).json({ data: 'success', response });
 }
