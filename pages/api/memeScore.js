@@ -1,40 +1,85 @@
 import { WebClient } from '@slack/web-api';
-import axios from 'axios';
+// import axios from 'axios';
+
+// const instance = axios.create({
+//   baseURL: 'https://slack.com/api/',
+//   timeout: 4000,
+//   headers: {
+//     'Content-type': 'application/x-www-form-urlencoded',
+//     authorization: 'Bearer ' + token,
+//   },
+// });
+
+// const response = await instance.get(`/conversations.history?channel=${channel}`);
+// const response = await axios.get(`https://slack.com/api/conversations.history?channel=${channel}`, config);
+
+// const config = {
+//   headers: { Authorization: `Bearer ${token}` },
+// };
+
+// const bodyParameters = {
+//   key: 'value',
+// };
 
 const token = process.env.SLACK_TOKEN;
-console.log('token', token);
 const channel = process.env.SLACK_CHANNEL;
 const slack = new WebClient(token, { logLevel: 'debug' });
 
-const config = {
-  headers: { Authorization: `Bearer ${token}` },
-};
+const DEFAULT_SCORE = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10; // We'll remove the initially given score to be more precise.
 
-const bodyParameters = {
-  key: 'value',
+const REACTION_NAME_VALUE_MAP = {
+  keycap_ten: 10,
+  nine: 9,
+  eight: 8,
+  seven: 7,
+  six: 6,
+  five: 5,
+  four: 4,
+  three: 3,
+  two: 2,
+  one: 1,
 };
 
 export default async function memeScore(_, res) {
   try {
-    // const instance = axios.create({
-    //   baseURL: 'https://slack.com/api/',
-    //   timeout: 4000,
-    //   headers: {
-    //     'Content-type': 'application/x-www-form-urlencoded',
-    //     authorization: 'Bearer ' + token,
-    //   },
-    // });
-
-    // const response = await instance.get(`/conversations.history?channel=${channel}`);
-    // const response = await axios.get(`https://slack.com/api/conversations.history?channel=${channel}`, config);
     const response = await slack.conversations.history({ channel });
     console.log('response', response);
-    res.status(200).json({ data: 'success', response });
+
+    const lastFileMessage = response.messages.find(message => message.files?.length && message.reactions?.length);
+
+    if (!lastFileMessage) {
+      res.status(500).json('No file message found in provided channel');
+
+      //   res.status(200).json({ data: 'success', message: 'No file message found in provided channel' });
+    }
+    const { reactionScore, totalVoters } = lastFileMessage.reactions.reduce(
+      reaction => {
+        if (!REACTION_NAME_VALUE_MAP[reaction.name]) {
+          return acc;
+        }
+
+        return {
+          reactionScore: acc.reactionScore + reaction.count * REACTION_NAME_VALUE_MAP[reaction.name],
+          totalVoters: acc.totalVoters + reaction.count - 1, // -1 to remove the given one
+        };
+      },
+      {
+        reactionScore: 0,
+        totalVoters: 0,
+      }
+    );
+    if (!totalVoters) {
+      res.status(500).json('No voters reacted to the last file message in the channel');
+      //   res.status(200).json({ data: 'success', message: '' });
+    }
+    const reactionAverageScore = ((reactionScore - DEFAULT_SCORE) / totalVoters).toFixed(2);
+
+    const postResponse = await slack.chat.postMessage({ channel, text: `Meme Average Score: ${reactionAverageScore}` });
+    res.status(200).json({ data: 'success', postResponse });
   } catch (e) {
     console.log('e', e);
-    res.status(200).json({ data: e });
-    // res.status(500).json(e);
+    res.status(500).json(e);
   }
 
-  //['keycap_ten', 'nine', 'eight', 'seven', 'six', 'five', 'four', 'three', 'two', 'one'])
+  res.status(200).json({ data: 'success', message: 'Score calculated and posted.' });
 }
