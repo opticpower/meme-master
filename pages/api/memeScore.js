@@ -47,36 +47,38 @@ export default async function memeScore(_, res) {
 
     const lastFileMessage = response.messages.find(message => message.files?.length && message.reactions?.length);
 
-    // if (!lastFileMessage) {
-    //   res.status(500).json('No file message found in provided channel');
+    if (!lastFileMessage) {
+      res.status(200).json({ data: 'No file message found in provided channel' });
+      //   res.status(500).json('No file message found in provided channel');
 
-    //   //   res.status(200).json({ data: 'success', message: 'No file message found in provided channel' });
-    // }
-    // const { reactionScore, totalVoters } = lastFileMessage.reactions.reduce(
-    //   reaction => {
-    //     if (!REACTION_NAME_VALUE_MAP[reaction.name]) {
-    //       return acc;
-    //     }
+      //   res.status(200).json({ data: 'success', message: 'No file message found in provided channel' });
+    }
+    const { reactionScore, totalVoters } = lastFileMessage.reactions.reduce(
+      reaction => {
+        if (!REACTION_NAME_VALUE_MAP[reaction.name]) {
+          return acc;
+        }
 
-    //     return {
-    //       reactionScore: acc.reactionScore + reaction.count * REACTION_NAME_VALUE_MAP[reaction.name],
-    //       totalVoters: acc.totalVoters + reaction.count - 1, // -1 to remove the given one
-    //     };
-    //   },
-    //   {
-    //     reactionScore: 0,
-    //     totalVoters: 0,
-    //   }
-    // );
-    // if (!totalVoters) {
-    //   res.status(500).json('No voters reacted to the last file message in the channel');
-    //   //   res.status(200).json({ data: 'success', message: '' });
-    // }
-    // const reactionAverageScore = ((reactionScore - DEFAULT_SCORE) / totalVoters).toFixed(2);
+        return {
+          reactionScore: acc.reactionScore + reaction.count * REACTION_NAME_VALUE_MAP[reaction.name],
+          totalVoters: acc.totalVoters + reaction.count - 1, // -1 to remove the given one
+        };
+      },
+      {
+        reactionScore: 0,
+        totalVoters: 0,
+      }
+    );
+    if (!totalVoters) {
+      res.status(200).json({ data: 'No voters reacted to the last file message in the channel' });
+      //   res.status(500).json('No voters reacted to the last file message in the channel');
+      //   res.status(200).json({ data: 'success', message: '' });
+    }
+    const reactionAverageScore = ((reactionScore - DEFAULT_SCORE) / totalVoters).toFixed(2);
 
-    // const postResponse = await slack.chat.postMessage({ channel, text: `Meme Average Score: ${reactionAverageScore}` });
-    // console.log('postResponse', postResponse);
-    // res.status(200).json({ data: 'postResponse' });
+    const postResponse = await slack.chat.postMessage({ channel, text: `Meme Average Score: ${reactionAverageScore}` });
+    console.log('postResponse', postResponse);
+    res.status(200).json({ data: 'postResponse' });
   } catch (e) {
     console.log('e', e);
     res.status(200).json({ data: 'error', e });
