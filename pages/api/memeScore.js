@@ -44,6 +44,7 @@ export default async function memeScore(_, res) {
   try {
     const response = await slack.conversations.history({ channel });
     console.log('response', response);
+    res.status(200).json({ data: response });
 
     const lastFileMessage = response.messages.find(message => message.files?.length && message.reactions?.length);
 
