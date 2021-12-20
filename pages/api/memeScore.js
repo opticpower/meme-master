@@ -22,7 +22,6 @@ const REACTION_NAME_VALUE_MAP = {
 const memeScore = async (_, res) => {
   try {
     const response = await slack.conversations.history({ channel });
-    console.log('Conversation Response', response);
 
     const lastFileMessage = response.messages.find(message => message.files?.length && message.reactions?.length);
 
