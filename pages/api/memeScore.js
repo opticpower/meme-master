@@ -56,7 +56,11 @@ const memeScore = async (_, res) => {
     const reactionAverageScore = ((reactionScore - DEFAULT_SCORE) / totalVoters).toFixed(2);
     console.log('reactionAverageScore', reactionAverageScore);
 
-    await slack.chat.postMessage({ channel, text: `Meme Average Score: ${reactionAverageScore}` });
+    await slack.chat.postMessage({
+      channel,
+      thread_ts: lastFileMessage.ts,
+      text: `Meme Average Score: ${reactionAverageScore}`,
+    });
     res.status(200).json({ data: 'success', message: 'Score calculated and posted.', reactionAverageScore });
   } catch (e) {
     console.log('Error!', e);
