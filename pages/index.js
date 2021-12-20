@@ -20,6 +20,7 @@ const StyledButton = styled.button`
 
 export default function Home() {
   // Loading State
+  const [loading, setLoading] = useState(false);
   const [background, setBackground] = useState('#D391FA');
   const { getRootProps, getInputProps } = useDropzone({
     accept: 'image/*',
@@ -61,8 +62,15 @@ export default function Home() {
   };
 
   const getMemeScore = useCallback(async () => {
-    const response = await axios.get('/api/memeScore');
-    console.log('response', response);
+    setLoading(true);
+    try {
+      const response = await axios.get('/api/memeScore');
+      console.log('response', response);
+    } catch (e) {
+      console.log('e', e, e.message);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   return (
@@ -76,7 +84,9 @@ export default function Home() {
         <input {...getInputProps()} />
         <p>{background === '#D391FA' ? 'Drag a meme to start voting' : 'Uploading...'}</p>
       </StyledDiv>
-      <StyledButton onClick={getMemeScore}>Get Last Message Score</StyledButton>
+      <StyledButton disabled={loading} onClick={getMemeScore}>
+        Get Last Message Score
+      </StyledButton>
     </>
   );
 }

@@ -1,6 +1,7 @@
 import { WebClient } from '@slack/web-api';
 
 const token = process.env.SLACK_TOKEN;
+console.log('token', token);
 const channel = process.env.SLACK_CHANNEL;
 const slack = new WebClient(token, { logLevel: 'debug' });
 
@@ -19,11 +20,13 @@ const REACTION_NAME_VALUE_MAP = {
   one: 1,
 };
 
-export default async function memeScore(_, res) {
+const memeScore = async (_, res) => {
   try {
     const response = await slack.conversations.history({ channel });
+    console.log('Conversation Response', response);
 
     const lastFileMessage = response.messages.find(message => message.files?.length && message.reactions?.length);
+    console.log('lastFileMessage', lastFileMessage);
 
     if (!lastFileMessage) {
       res.status(500).json('No file message found in provided channel');
@@ -44,16 +47,21 @@ export default async function memeScore(_, res) {
         totalVoters: 0,
       }
     );
+
+    console.log('reactionScore, totalVoters', reactionScore, totalVoters);
+
     if (!totalVoters) {
       res.status(500).json('No voters reacted to the last file message in the channel');
     }
     const reactionAverageScore = ((reactionScore - DEFAULT_SCORE) / totalVoters).toFixed(2);
+    console.log('reactionAverageScore', reactionAverageScore);
 
     await slack.chat.postMessage({ channel, text: `Meme Average Score: ${reactionAverageScore}` });
+    res.status(200).json({ data: 'success', message: 'Score calculated and posted.', reactionAverageScore });
   } catch (e) {
     console.log('Error!', e);
     res.status(500).json(e);
   }
+};
 
-  res.status(200).json({ data: 'success', message: 'Score calculated and posted.' });
-}
+export default memeScore;
