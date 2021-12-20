@@ -32,7 +32,7 @@ const memeScore = async (_, res) => {
       res.status(500).json('No file message found in provided channel');
     }
     const { reactionScore, totalVoters } = lastFileMessage.reactions.reduce(
-      reaction => {
+      (acc, reaction) => {
         if (!REACTION_NAME_VALUE_MAP[reaction.name]) {
           return acc;
         }
