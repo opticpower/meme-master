@@ -65,7 +65,6 @@ export default function Home() {
     setLoading(true);
     try {
       const response = await axios.get('/api/memeScore');
-      console.log('response', response);
     } catch (e) {
       console.log('e', e, e.message);
     } finally {

@@ -1,7 +1,6 @@
 import { WebClient } from '@slack/web-api';
 
 const token = process.env.SLACK_TOKEN;
-console.log('token', token);
 const channel = process.env.SLACK_CHANNEL;
 const slack = new WebClient(token, { logLevel: 'debug' });
 
@@ -26,7 +25,6 @@ const memeScore = async (_, res) => {
     console.log('Conversation Response', response);
 
     const lastFileMessage = response.messages.find(message => message.files?.length && message.reactions?.length);
-    console.log('lastFileMessage', lastFileMessage);
 
     if (!lastFileMessage) {
       res.status(500).json('No file message found in provided channel');
@@ -48,13 +46,10 @@ const memeScore = async (_, res) => {
       }
     );
 
-    console.log('reactionScore, totalVoters', reactionScore, totalVoters);
-
     if (!totalVoters) {
       res.status(500).json('No voters reacted to the last file message in the channel');
     }
     const reactionAverageScore = ((reactionScore - DEFAULT_SCORE) / totalVoters).toFixed(2);
-    console.log('reactionAverageScore', reactionAverageScore);
 
     await slack.chat.postMessage({
       channel,
